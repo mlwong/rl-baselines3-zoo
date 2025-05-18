@@ -8,6 +8,20 @@ from huggingface_sb3 import EnvironmentName
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import VecVideoRecorder
 
+def _vec_video_recorder__getattr(self, name):
+    # Fix a bug in push_to_hub.py where it looks for video_recorder.path
+    if "video_recorder" == name:
+        return self
+    if "path" == name:
+        return self.video_path
+    if None is _orig_vec_video_recorder_getattr:
+        raise AttributeError(name)
+    return _orig_vec_video_recorder_getattr(self, name)
+
+
+_orig_vec_video_recorder_getattr = getattr(VecVideoRecorder, "__getattr__", None)
+setattr(VecVideoRecorder, "__getattr__", _vec_video_recorder__getattr)
+
 from rl_zoo3.exp_manager import ExperimentManager
 from rl_zoo3.utils import ALGOS, StoreDict, create_test_env, get_model_path, get_saved_hyperparams
 
